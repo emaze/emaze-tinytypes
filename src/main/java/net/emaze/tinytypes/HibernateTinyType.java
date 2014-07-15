@@ -18,7 +18,7 @@ import org.hibernate.usertype.EnhancedUserType;
  */
 public class HibernateTinyType implements EnhancedUserType, DynamicParameterizedType {
 
-    public static final String TYPE =  "net.emaze.petri.tinytypes.HibernateTinyType";
+    public static final String TYPE =  "net.emaze.tinytypes.HibernateTinyType";
     private Class<?> tinyType;
     private Constructor ctor;
     private int[] sqlTypes;
