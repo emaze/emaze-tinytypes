@@ -7,7 +7,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Properties;
 import org.hibernate.HibernateException;
-import org.hibernate.annotations.common.reflection.XProperty;
 import org.hibernate.engine.spi.SessionImplementor;
 import org.hibernate.usertype.DynamicParameterizedType;
 import org.hibernate.usertype.EnhancedUserType;
@@ -26,8 +25,8 @@ public class HibernateTinyType implements EnhancedUserType, DynamicParameterized
     @Override
     public void setParameterValues(Properties properties) {
         try {
-            final XProperty xp = (XProperty) properties.get(XPROPERTY);
-            this.tinyType = Class.forName(xp.getType().getName());
+            final String returnedClass = (String) properties.get(RETURNED_CLASS);
+            this.tinyType = Class.forName(returnedClass);
             this.ctor = TinyTypesReflector.ctor(tinyType);
             this.sqlTypes = new int[]{TinyTypesReflector.sqlType(tinyType)};
         } catch (ClassNotFoundException ex) {
