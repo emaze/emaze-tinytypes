@@ -6,12 +6,17 @@ import java.io.Serializable;
  *
  * @author rferranti
  */
-public abstract class LongTinyType implements Serializable {
+public abstract class LongTinyType implements Serializable, Comparable<LongTinyType> {
 
     public final long value;
 
     public LongTinyType(long value) {
         this.value = value;
+    }
+
+    @Override
+    public int compareTo(LongTinyType other) {
+        return Long.compare(this.value, other.value);
     }
 
     @Override

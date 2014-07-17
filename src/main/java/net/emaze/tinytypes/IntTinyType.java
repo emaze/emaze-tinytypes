@@ -6,7 +6,7 @@ import java.io.Serializable;
  *
  * @author rferranti
  */
-public abstract class IntTinyType implements Serializable {
+public abstract class IntTinyType implements Serializable, Comparable<IntTinyType> {
 
     public final int value;
 
@@ -14,6 +14,12 @@ public abstract class IntTinyType implements Serializable {
         this.value = value;
     }
 
+    @Override
+    public int compareTo(IntTinyType other) {
+        return Integer.compare(this.value, other.value);
+    }
+
+    
     @Override
     public boolean equals(Object rhs) {
         if (rhs == null) {
