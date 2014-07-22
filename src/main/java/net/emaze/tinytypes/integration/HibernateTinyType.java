@@ -1,62 +1,45 @@
-package net.emaze.tinytypes;
+package net.emaze.tinytypes.integration;
 
 import java.io.Serializable;
-import java.lang.reflect.Constructor;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Properties;
+import net.emaze.tinytypes.TinyTypesReflector;
 import org.hibernate.HibernateException;
 import org.hibernate.engine.spi.SessionImplementor;
-import org.hibernate.usertype.DynamicParameterizedType;
 import org.hibernate.usertype.EnhancedUserType;
 
 /**
  *
  * @author rferranti
  */
-public class HibernateTinyType implements EnhancedUserType, DynamicParameterizedType {
-
-    public static final String TYPE =  "net.emaze.tinytypes.HibernateTinyType";
-    private Class<?> tinyType;
-    private Constructor ctor;
-    private int[] sqlTypes;
+public abstract class HibernateTinyType implements EnhancedUserType {
 
     @Override
-    public void setParameterValues(Properties properties) {
-        try {
-            final String returnedClass = (String) properties.get(RETURNED_CLASS);
-            this.tinyType = Class.forName(returnedClass);
-            this.ctor = TinyTypesReflector.ctor(tinyType);
-            this.sqlTypes = new int[]{TinyTypesReflector.sqlType(tinyType)};
-        } catch (ClassNotFoundException ex) {
-            throw new IllegalStateException(ex);
-        }
-    }
+    public abstract int[] sqlTypes();
+
+    @Override
+    public abstract Class returnedClass();
+    
+    protected abstract String stringify(Object value);
+    protected abstract Object parse(String value);
+    protected abstract Serializable create(Object value);
+    protected abstract Object unwrap(Object value);
+
 
     @Override
     public String objectToSQLString(Object value) {
-        return TinyTypesReflector.toString(tinyType, value);
+        return stringify(value);
     }
 
     @Override
     public String toXMLString(Object value) {
-        return TinyTypesReflector.toString(tinyType, value);
+        return stringify(value);
     }
 
     @Override
     public Object fromXMLString(String xmlValue) {
-        return TinyTypesReflector.fromString(tinyType, ctor, xmlValue);
-    }
-
-    @Override
-    public int[] sqlTypes() {
-        return sqlTypes;
-    }
-
-    @Override
-    public Class returnedClass() {
-        return tinyType;
+        return parse(xmlValue);
     }
 
     @Override
@@ -75,16 +58,16 @@ public class HibernateTinyType implements EnhancedUserType, DynamicParameterized
         if (rs.wasNull()) {
             return null;
         } else {
-            return TinyTypesReflector.create(tinyType, ctor, value);
+            return create(value);
         }
     }
 
     @Override
     public void nullSafeSet(PreparedStatement st, Object value, int index, SessionImplementor session) throws HibernateException, SQLException {
         if (value == null) {
-            st.setNull(index, sqlTypes[0]);
+            st.setNull(index, sqlTypes()[0]);
         } else {
-            st.setObject(index, TinyTypesReflector.value(value), sqlTypes[0]);
+            st.setObject(index, unwrap(value), sqlTypes()[0]);
         }
     }
 
@@ -105,7 +88,7 @@ public class HibernateTinyType implements EnhancedUserType, DynamicParameterized
 
     @Override
     public Object assemble(Serializable cached, Object owner) throws HibernateException {
-        return TinyTypesReflector.create(tinyType, ctor, cached);
+        return create(cached);
     }
 
     @Override
