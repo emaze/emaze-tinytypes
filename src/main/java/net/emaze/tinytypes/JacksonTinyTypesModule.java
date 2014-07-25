@@ -25,12 +25,12 @@ public class JacksonTinyTypesModule extends SimpleModule {
 
     public JacksonTinyTypesModule() {
         super("tinytypes-module", new Version(1, 0, 0, null, "net.emaze", "emaze-petri-tiny-types"));
-        this.addSerializer(LongTinyType.class, new TinyTypeSerializer());
-        this.addSerializer(IntTinyType.class, new TinyTypeSerializer());
-        this.addSerializer(StringTinyType.class, new TinyTypeSerializer());
-        this.addKeySerializer(LongTinyType.class, new TinyTypeSerializer());
-        this.addKeySerializer(IntTinyType.class, new TinyTypeSerializer());
-        this.addKeySerializer(StringTinyType.class, new TinyTypeSerializer());
+        this.addSerializer(LongTinyType.class, new LongTinyTypeSerializer());
+        this.addSerializer(IntTinyType.class, new IntTinyTypeSerializer());
+        this.addSerializer(StringTinyType.class, new StringTinyTypeSerializer());
+        this.addKeySerializer(LongTinyType.class, new LongTinyTypeSerializer());
+        this.addKeySerializer(IntTinyType.class, new IntTinyTypeSerializer());
+        this.addKeySerializer(StringTinyType.class, new StringTinyTypeSerializer());
     }
 
     @Override
@@ -73,11 +73,25 @@ public class JacksonTinyTypesModule extends SimpleModule {
 
     }    
 
-    public static class TinyTypeSerializer extends JsonSerializer<Object> {
+    public static class LongTinyTypeSerializer extends JsonSerializer<LongTinyType> {
 
         @Override
-        public void serialize(Object st, JsonGenerator jgen, SerializerProvider provider) throws IOException, JsonProcessingException {
-            jgen.writeObject(TinyTypesReflector.value(st));
+        public void serialize(LongTinyType st, JsonGenerator jgen, SerializerProvider provider) throws IOException, JsonProcessingException {
+            jgen.writeObject(st.value);
+        }
+    }
+    public static class IntTinyTypeSerializer extends JsonSerializer<IntTinyType> {
+
+        @Override
+        public void serialize(IntTinyType st, JsonGenerator jgen, SerializerProvider provider) throws IOException, JsonProcessingException {
+            jgen.writeObject(st.value);
+        }
+    }
+    public static class StringTinyTypeSerializer extends JsonSerializer<StringTinyType> {
+
+        @Override
+        public void serialize(StringTinyType st, JsonGenerator jgen, SerializerProvider provider) throws IOException, JsonProcessingException {
+            jgen.writeObject(st.value);
         }
     }
 }

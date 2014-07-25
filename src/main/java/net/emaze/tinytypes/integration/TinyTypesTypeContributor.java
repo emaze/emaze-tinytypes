@@ -56,21 +56,21 @@ public class TinyTypesTypeContributor implements TypeContributor {
             if (LongTinyType.class.isAssignableFrom(concreteTinyType)) {
                 cc.addMethod(CtNewMethod.make(String.format("public String stringify(Object source){ if(source==null)return null; return Long.toString(((%s) source).value); }", concreteName), cc));
                 cc.addMethod(CtNewMethod.make(String.format("public Object parse(String source){ return new %s(Long.parseLong(source)); }", concreteName), cc));
-                cc.addMethod(CtNewMethod.make(String.format("public java.io.Serializable create(Object value){ return new %s(((Long)value).longValue()); }", concreteName), cc));
+                cc.addMethod(CtNewMethod.make(String.format("public Object create(Object value){ return new %s(((Long)value).longValue()); }", concreteName), cc));
                 cc.addMethod(CtNewMethod.make(String.format("public int[] sqlTypes(){ return new int[]{ %d}; }", StandardBasicTypes.LONG.sqlType()), cc));
-                cc.addMethod(CtNewMethod.make(String.format("public Object unwrap(Object source){ return Long.valueOf(((%s) source).value); }", concreteName), cc));
+                cc.addMethod(CtNewMethod.make(String.format("public java.io.Serializable unwrap(Object source){ return Long.valueOf(((%s) source).value); }", concreteName), cc));
             } else if (IntTinyType.class.isAssignableFrom(concreteTinyType)) {
                 cc.addMethod(CtNewMethod.make(String.format("public String stringify(Object source){ if(source==null)return null; return Integer.toString(((%s) source).value); }", concreteName), cc));
                 cc.addMethod(CtNewMethod.make(String.format("public Object parse(String source){ return new %s(Integer.parseInt(source)); }", concreteName), cc));
-                cc.addMethod(CtNewMethod.make(String.format("public java.io.Serializable create(Object value){ return new %s(((Integer)value).intValue()); }", concreteName), cc));
+                cc.addMethod(CtNewMethod.make(String.format("public Object create(Object value){ return new %s(((Integer)value).intValue()); }", concreteName), cc));
                 cc.addMethod(CtNewMethod.make(String.format("public int[] sqlTypes(){ return new int[]{ %d}; }", StandardBasicTypes.INTEGER.sqlType()), cc));
-                cc.addMethod(CtNewMethod.make(String.format("public Object unwrap(Object source){ return Integer.valueOf(((%s) source).value); }", concreteName), cc));
+                cc.addMethod(CtNewMethod.make(String.format("public java.io.Serializable unwrap(Object source){ return Integer.valueOf(((%s) source).value); }", concreteName), cc));
             } else if (StringTinyType.class.isAssignableFrom(concreteTinyType)) {
                 cc.addMethod(CtNewMethod.make(String.format("public String stringify(Object source){ if(source==null)return null; return ((%s) source).value; }", concreteName), cc));
                 cc.addMethod(CtNewMethod.make(String.format("public Object parse(String source){ return new %s(source); }", concreteName), cc));
-                cc.addMethod(CtNewMethod.make(String.format("public java.io.Serializable create(Object value){ return new %s((String)value); }", concreteName), cc));
+                cc.addMethod(CtNewMethod.make(String.format("public Object create(Object value){ return new %s((String)value); }", concreteName), cc));
                 cc.addMethod(CtNewMethod.make(String.format("public int[] sqlTypes(){ return new int[]{ %d}; }", StandardBasicTypes.TEXT.sqlType()), cc));
-                cc.addMethod(CtNewMethod.make(String.format("public Object unwrap(Object source){ return ((%s) source).value; }", concreteName), cc));
+                cc.addMethod(CtNewMethod.make(String.format("public java.io.Serializable unwrap(Object source){ return ((%s) source).value; }", concreteName), cc));
             }
             cc.addMethod(CtNewMethod.make(String.format("public Class returnedClass(){ return %s.class; }", concreteName), cc));
             return (UserType) cc.toClass().newInstance();

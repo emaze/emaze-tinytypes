@@ -4,7 +4,6 @@ import java.io.Serializable;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import net.emaze.tinytypes.TinyTypesReflector;
 import org.hibernate.HibernateException;
 import org.hibernate.engine.spi.SessionImplementor;
 import org.hibernate.usertype.EnhancedUserType;
@@ -23,8 +22,8 @@ public abstract class HibernateTinyType implements EnhancedUserType {
     
     protected abstract String stringify(Object value);
     protected abstract Object parse(String value);
-    protected abstract Serializable create(Object value);
-    protected abstract Object unwrap(Object value);
+    protected abstract Object create(Object value);
+    protected abstract Serializable unwrap(Object value);
 
 
     @Override
@@ -83,7 +82,7 @@ public abstract class HibernateTinyType implements EnhancedUserType {
 
     @Override
     public Serializable disassemble(Object value) throws HibernateException {
-        return TinyTypesReflector.value(value);
+        return unwrap(value);
     }
 
     @Override

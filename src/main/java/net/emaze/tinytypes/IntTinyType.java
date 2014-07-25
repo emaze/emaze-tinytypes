@@ -16,7 +16,7 @@ public abstract class IntTinyType implements Serializable, Comparable<IntTinyTyp
 
     @Override
     public String toString() {
-        return this.getClass().getSimpleName() + "#" + value;
+        return String.format("%s#%s", this.getClass().getSimpleName(), value);
     }
 
     @Override
