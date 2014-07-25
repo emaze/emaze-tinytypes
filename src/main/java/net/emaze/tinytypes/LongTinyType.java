@@ -15,6 +15,11 @@ public abstract class LongTinyType implements Serializable, Comparable<LongTinyT
     }
 
     @Override
+    public String toString() {
+        return this.getClass().getSimpleName() + "#" + value;
+    }
+
+    @Override
     public int compareTo(LongTinyType other) {
         return Long.compare(this.value, other.value);
     }

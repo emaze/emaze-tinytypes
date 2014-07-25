@@ -15,6 +15,11 @@ public abstract class StringTinyType implements Serializable, Comparable<StringT
     }
 
     @Override
+    public String toString() {
+        return this.getClass().getSimpleName() + "#" + value;
+    }
+
+    @Override
     public int compareTo(StringTinyType other) {
         return value.compareTo(other.value);
     }

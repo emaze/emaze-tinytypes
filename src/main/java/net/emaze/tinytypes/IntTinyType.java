@@ -15,11 +15,15 @@ public abstract class IntTinyType implements Serializable, Comparable<IntTinyTyp
     }
 
     @Override
+    public String toString() {
+        return this.getClass().getSimpleName() + "#" + value;
+    }
+
+    @Override
     public int compareTo(IntTinyType other) {
         return Integer.compare(this.value, other.value);
     }
 
-    
     @Override
     public boolean equals(Object rhs) {
         if (rhs == null) {
