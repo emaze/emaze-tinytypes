@@ -1,11 +1,5 @@
 package net.emaze.tinytypes.integration;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 import javassist.ClassClassPath;
 import javassist.ClassPool;
 import javassist.CtClass;
@@ -13,18 +7,14 @@ import javassist.CtNewMethod;
 import net.emaze.tinytypes.IntTinyType;
 import net.emaze.tinytypes.LongTinyType;
 import net.emaze.tinytypes.StringTinyType;
+import net.emaze.tinytypes.generation.TinyTypesReflector;
+import org.hibernate.engine.config.spi.ConfigurationService;
 import org.hibernate.metamodel.spi.TypeContributions;
 import org.hibernate.metamodel.spi.TypeContributor;
 import org.hibernate.service.ServiceRegistry;
 import org.hibernate.type.StandardBasicTypes;
 import org.hibernate.usertype.UserType;
 import org.jboss.logging.Logger;
-import org.springframework.core.io.Resource;
-import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
-import org.springframework.core.io.support.ResourcePatternResolver;
-import org.springframework.core.type.ClassMetadata;
-import org.springframework.core.type.classreading.CachingMetadataReaderFactory;
-import org.springframework.core.type.classreading.MetadataReaderFactory;
 
 /**
  *
@@ -32,13 +22,17 @@ import org.springframework.core.type.classreading.MetadataReaderFactory;
  */
 public class TinyTypesTypeContributor implements TypeContributor {
 
-    private ResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
-    private MetadataReaderFactory mreader = new CachingMetadataReaderFactory(this.resolver);
     private final Logger logger = Logger.getLogger(TinyTypesTypeContributor.class);
+    private static final String LOCATION_PATTERN_KEY = "hibernate.tinytypes.location.pattern";
 
     @Override
     public void contribute(TypeContributions typeContributions, ServiceRegistry serviceRegistry) {
-        for (Class<?> tinyType : scan(StringTinyType.class.getName(), LongTinyType.class.getName(), IntTinyType.class.getName())) {
+        final ConfigurationService configuration = serviceRegistry.getService(ConfigurationService.class);
+        final String cp = configuration.getSetting(LOCATION_PATTERN_KEY, String.class, null);
+        if(cp == null){
+            throw new IllegalStateException(String.format("%s must be set (i.e: %s)", LOCATION_PATTERN_KEY, "classpath*:/net/emaze/**/*.class"));
+        }
+        for (Class<?> tinyType : TinyTypesReflector.scan(cp)) {
             logger.info(String.format("found %s", tinyType.getSimpleName()));
             final UserType type = createHibernateType(tinyType);
             typeContributions.contributeType(type, new String[]{tinyType.getName()});
@@ -50,7 +44,11 @@ public class TinyTypesTypeContributor implements TypeContributor {
         try {
             final ClassPool pool = ClassPool.getDefault();
             pool.appendClassPath(new ClassClassPath(concreteTinyType));
-            final CtClass cc = pool.makeClass(String.format("net.emaze.tinytypes.integration.Hibernate%s", concreteTinyType.getSimpleName()));
+            final String className = String.format("net.emaze.tinytypes.gen.Hibernate%s", concreteTinyType.getSimpleName());
+            if (pool.getOrNull(className) != null) {
+                return (UserType) Class.forName(className).newInstance();
+            }
+            final CtClass cc = pool.makeClass(className);
             cc.setSuperclass(pool.get(HibernateTinyType.class.getName()));
             final String concreteName = concreteTinyType.getName();
             if (LongTinyType.class.isAssignableFrom(concreteTinyType)) {
@@ -77,30 +75,6 @@ public class TinyTypesTypeContributor implements TypeContributor {
         } catch (Exception ex) {
             throw new IllegalStateException(String.format("while generating usertype for %s: ", concreteTinyType), ex);
         }
-    }
-
-    private List<Class<?>> scan(String... classNames) {
-        final Set<String> names = new HashSet<>(Arrays.asList(classNames));
-        try {
-
-            List<Class<?>> result = new ArrayList<>();
-            for (Resource resource : resolver.getResources("classpath*:/net/emaze/**/*.class")) {
-                final ClassMetadata cm = mreader.getMetadataReader(resource).getClassMetadata();
-                final String candidateName = cm.getSuperClassName();
-                if (names.contains(candidateName)) {
-                    try {
-                        result.add(Class.forName(cm.getClassName()));
-                    } catch (ClassNotFoundException ex) {
-                        throw new IllegalStateException(ex);
-                    }
-                }
-            }
-            return result;
-
-        } catch (IOException ex) {
-            throw new IllegalStateException(ex);
-        }
-
     }
 
 }
