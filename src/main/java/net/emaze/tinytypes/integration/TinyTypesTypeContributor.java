@@ -4,15 +4,12 @@ import javassist.ClassClassPath;
 import javassist.ClassPool;
 import javassist.CtClass;
 import javassist.CtNewMethod;
-import net.emaze.tinytypes.IntTinyType;
-import net.emaze.tinytypes.LongTinyType;
-import net.emaze.tinytypes.StringTinyType;
+import net.emaze.tinytypes.generation.Template;
 import net.emaze.tinytypes.generation.TinyTypesReflector;
 import org.hibernate.engine.config.spi.ConfigurationService;
 import org.hibernate.metamodel.spi.TypeContributions;
 import org.hibernate.metamodel.spi.TypeContributor;
 import org.hibernate.service.ServiceRegistry;
-import org.hibernate.type.StandardBasicTypes;
 import org.hibernate.usertype.UserType;
 import org.jboss.logging.Logger;
 
@@ -51,25 +48,47 @@ public class TinyTypesTypeContributor implements TypeContributor {
             final CtClass cc = pool.makeClass(className);
             cc.setSuperclass(pool.get(HibernateTinyType.class.getName()));
             final String concreteName = concreteTinyType.getName();
-            if (LongTinyType.class.isAssignableFrom(concreteTinyType)) {
-                cc.addMethod(CtNewMethod.make(String.format("public String stringify(Object source){ if(source==null)return null; return Long.toString(((%s) source).value); }", concreteName), cc));
-                cc.addMethod(CtNewMethod.make(String.format("public Object parse(String source){ return new %s(Long.parseLong(source)); }", concreteName), cc));
-                cc.addMethod(CtNewMethod.make(String.format("public Object create(Object value){ return new %s(((Long)value).longValue()); }", concreteName), cc));
-                cc.addMethod(CtNewMethod.make(String.format("public int[] sqlTypes(){ return new int[]{ %d}; }", StandardBasicTypes.LONG.sqlType()), cc));
-                cc.addMethod(CtNewMethod.make(String.format("public java.io.Serializable unwrap(Object source){ return Long.valueOf(((%s) source).value); }", concreteName), cc));
-            } else if (IntTinyType.class.isAssignableFrom(concreteTinyType)) {
-                cc.addMethod(CtNewMethod.make(String.format("public String stringify(Object source){ if(source==null)return null; return Integer.toString(((%s) source).value); }", concreteName), cc));
-                cc.addMethod(CtNewMethod.make(String.format("public Object parse(String source){ return new %s(Integer.parseInt(source)); }", concreteName), cc));
-                cc.addMethod(CtNewMethod.make(String.format("public Object create(Object value){ return new %s(((Integer)value).intValue()); }", concreteName), cc));
-                cc.addMethod(CtNewMethod.make(String.format("public int[] sqlTypes(){ return new int[]{ %d}; }", StandardBasicTypes.INTEGER.sqlType()), cc));
-                cc.addMethod(CtNewMethod.make(String.format("public java.io.Serializable unwrap(Object source){ return Integer.valueOf(((%s) source).value); }", concreteName), cc));
-            } else if (StringTinyType.class.isAssignableFrom(concreteTinyType)) {
-                cc.addMethod(CtNewMethod.make(String.format("public String stringify(Object source){ if(source==null)return null; return ((%s) source).value; }", concreteName), cc));
-                cc.addMethod(CtNewMethod.make(String.format("public Object parse(String source){ return new %s(source); }", concreteName), cc));
-                cc.addMethod(CtNewMethod.make(String.format("public Object create(Object value){ return new %s((String)value); }", concreteName), cc));
-                cc.addMethod(CtNewMethod.make(String.format("public int[] sqlTypes(){ return new int[]{ %d}; }", StandardBasicTypes.TEXT.sqlType()), cc));
-                cc.addMethod(CtNewMethod.make(String.format("public java.io.Serializable unwrap(Object source){ return ((%s) source).value; }", concreteName), cc));
-            }
+
+            final String stringify = Template.of(
+                    "public String stringify(Object source){",
+                    "  if(source==null) {",
+                    "    return null;",
+                    "  }",
+                    "  return %s(((%s) source).value);",
+                    "}"
+            ).format(TinyTypesReflector.stringifyFunction(concreteTinyType), concreteName);
+            cc.addMethod(CtNewMethod.make(stringify, cc));
+
+            final String parse = Template.of(
+                    "public Object parse(String source){",
+                    "  return new %s(%s(source));",
+                    "}"
+            ).format(concreteName, TinyTypesReflector.parseFunction(concreteTinyType));
+            cc.addMethod(CtNewMethod.make(parse, cc));
+
+            final String create = Template.of(
+                    "public Object create(Object value) {",
+                    "  return new %s((%svalue)%s); ",
+                    "}"
+            ).format(concreteName, TinyTypesReflector.boxCast(concreteTinyType), TinyTypesReflector.unboxFunctionCall(concreteTinyType));
+            cc.addMethod(CtNewMethod.make(create, cc));
+
+            final String sqlTypes = Template.of(
+                    "public int[] sqlTypes(){",
+                    "  return new int[]{ %d }; ",
+                    "}"
+            ).format(TinyTypesReflector.sqlType(concreteTinyType));
+
+            cc.addMethod(CtNewMethod.make(sqlTypes, cc));
+
+            final String unwrap = Template.of(
+                    "public java.io.Serializable unwrap(Object source){",
+                    "  return %s(((%s) source).value); ",
+                    "}"
+            ).format(TinyTypesReflector.boxFunction(concreteTinyType), concreteName);
+
+            cc.addMethod(CtNewMethod.make(unwrap, cc));
+
             cc.addMethod(CtNewMethod.make(String.format("public Class returnedClass(){ return %s.class; }", concreteName), cc));
             return (UserType) cc.toClass().newInstance();
         } catch (Exception ex) {

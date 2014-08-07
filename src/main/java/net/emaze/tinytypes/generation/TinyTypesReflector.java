@@ -1,8 +1,6 @@
 package net.emaze.tinytypes.generation;
 
 import java.io.IOException;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -13,6 +11,7 @@ import java.util.stream.Stream;
 import net.emaze.tinytypes.IntTinyType;
 import net.emaze.tinytypes.LongTinyType;
 import net.emaze.tinytypes.StringTinyType;
+import org.hibernate.type.StandardBasicTypes;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.core.io.support.ResourcePatternResolver;
@@ -26,7 +25,7 @@ import org.springframework.core.type.classreading.MetadataReaderFactory;
  */
 public class TinyTypesReflector {
 
-    public static String box(Class<?> tinyType) {
+    public static String boxCast(Class<?> tinyType) {
         if (LongTinyType.class.isAssignableFrom(tinyType)) {
             return "(Long)";
         }
@@ -35,6 +34,19 @@ public class TinyTypesReflector {
         }
         if (StringTinyType.class.isAssignableFrom(tinyType)) {
             return "(String)";
+        }
+        throw new IllegalStateException(String.format("unknown tiny type: %s", tinyType));
+    }
+
+    public static String boxFunction(Class<?> tinyType) {
+        if (LongTinyType.class.isAssignableFrom(tinyType)) {
+            return "Long.valueOf";
+        }
+        if (IntTinyType.class.isAssignableFrom(tinyType)) {
+            return "Integer.valueOf";
+        }
+        if (StringTinyType.class.isAssignableFrom(tinyType)) {
+            return "";
         }
         throw new IllegalStateException(String.format("unknown tiny type: %s", tinyType));
     }
@@ -64,6 +76,18 @@ public class TinyTypesReflector {
         }
         throw new IllegalStateException(String.format("unknown tiny type: %s", tinyType));
     }
+    public static String stringifyFunction(Class<?> tinyType) {
+        if (LongTinyType.class.isAssignableFrom(tinyType)) {
+            return "Long.toString";
+        }
+        if (IntTinyType.class.isAssignableFrom(tinyType)) {
+            return "Integer.toString";
+        }
+        if (StringTinyType.class.isAssignableFrom(tinyType)) {
+            return "";
+        }
+        throw new IllegalStateException(String.format("unknown tiny type: %s", tinyType));
+    }
 
     public static String unboxFunctionCall(Class<?> tinyType) {
         if (LongTinyType.class.isAssignableFrom(tinyType)) {
@@ -76,6 +100,19 @@ public class TinyTypesReflector {
             return "";
         }
         throw new IllegalStateException(String.format("unknown tiny type: %s", tinyType));
+    }
+    
+    public static int sqlType(Class<?> tinyType){
+        if (LongTinyType.class.isAssignableFrom(tinyType)) {
+            return StandardBasicTypes.LONG.sqlType();
+        }
+        if (IntTinyType.class.isAssignableFrom(tinyType)) {
+            return StandardBasicTypes.INTEGER.sqlType();
+        }
+        if (StringTinyType.class.isAssignableFrom(tinyType)) {
+            return StandardBasicTypes.TEXT.sqlType();
+        }
+        throw new IllegalStateException(String.format("unknown tiny type: %s", tinyType));    
     }
 
     private static final ResourcePatternResolver RESOLVER = new PathMatchingResourcePatternResolver();

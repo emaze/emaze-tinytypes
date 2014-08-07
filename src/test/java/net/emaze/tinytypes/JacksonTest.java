@@ -1,8 +1,10 @@
 package net.emaze.tinytypes;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import net.emaze.tinytypes.integration.JacksonTinyTypesModule;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import net.emaze.tinytypes.generation.TinyTypesReflector;
+import java.io.IOException;
+import org.junit.Assert;
 import org.junit.Test;
 
 /**
@@ -11,17 +13,25 @@ import org.junit.Test;
  */
 public class JacksonTest {
 
-    public static class MarioTinyType extends LongTinyType {
-
-        public MarioTinyType(long value) {
-            super(value);
-        }
-
+    @Test
+    public void canRegisterTheModule() {
+        final ObjectMapper m = new ObjectMapper();
+        m.registerModule(new JacksonTinyTypesModule("classpath*:/net/emaze/**/*.class"));
     }
 
     @Test
-    public void canRegisterTheModule() {
-        ObjectMapper m = new ObjectMapper();
+    public void canSerialize() throws JsonProcessingException {
+        final ObjectMapper m = new ObjectMapper();
         m.registerModule(new JacksonTinyTypesModule("classpath*:/net/emaze/**/*.class"));
+        final String got = m.writeValueAsString(new SampleIntTinyType(123));
+        Assert.assertEquals("123", got);
+    }
+
+    @Test
+    public void canDeserialize() throws JsonProcessingException, IOException {
+        final ObjectMapper m = new ObjectMapper();
+        m.registerModule(new JacksonTinyTypesModule("classpath*:/net/emaze/**/*.class"));
+        SampleIntTinyType got = m.readValue("123", SampleIntTinyType.class);
+        Assert.assertEquals(123, got.value);
     }
 }

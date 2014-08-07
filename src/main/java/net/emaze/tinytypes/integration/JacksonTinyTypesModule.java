@@ -60,7 +60,7 @@ public class JacksonTinyTypesModule extends SimpleModule {
                     "}"
             ).format(
                     TinyTypesReflector.nestedType(concreteTinyType).getSimpleName(),
-                    TinyTypesReflector.box(concreteTinyType),
+                    TinyTypesReflector.boxCast(concreteTinyType),
                     TinyTypesReflector.nestedType(concreteTinyType).getSimpleName(),
                     TinyTypesReflector.unboxFunctionCall(concreteTinyType),
                     concreteTinyType.getName()

@@ -2,7 +2,6 @@ package net.emaze.tinytypes;
 
 import net.emaze.tinytypes.integration.SpringConverters;
 import org.junit.Assert;
-import net.emaze.tinytypes.JacksonTest.MarioTinyType;
 import org.junit.Test;
 import org.springframework.format.support.DefaultFormattingConversionService;
 
@@ -17,11 +16,12 @@ public class SpringTest {
         DefaultFormattingConversionService registry = new DefaultFormattingConversionService();
         SpringConverters.register(registry, "classpath*:/net/emaze/**/*.class");
     }
+
     @Test
-    public void canConvertTypeFromString() {
+    public void canConvertIntTinyTypeFromString() {
         DefaultFormattingConversionService registry = new DefaultFormattingConversionService();
         SpringConverters.register(registry, "classpath*:/net/emaze/**/*.class");
-        MarioTinyType got = registry.convert("321", MarioTinyType.class);
+        SampleIntTinyType got = registry.convert("321", SampleIntTinyType.class);
         Assert.assertEquals(321, got.value);
     }
 }
