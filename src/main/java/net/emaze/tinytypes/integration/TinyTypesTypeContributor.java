@@ -26,7 +26,7 @@ public class TinyTypesTypeContributor implements TypeContributor {
     public void contribute(TypeContributions typeContributions, ServiceRegistry serviceRegistry) {
         final ConfigurationService configuration = serviceRegistry.getService(ConfigurationService.class);
         final String cp = configuration.getSetting(LOCATION_PATTERN_KEY, String.class, null);
-        if(cp == null){
+        if (cp == null) {
             throw new IllegalStateException(String.format("%s must be set (i.e: %s)", LOCATION_PATTERN_KEY, "classpath*:/net/emaze/**/*.class"));
         }
         for (Class<?> tinyType : TinyTypesReflector.scan(cp)) {
@@ -49,47 +49,50 @@ public class TinyTypesTypeContributor implements TypeContributor {
             cc.setSuperclass(pool.get(HibernateTinyType.class.getName()));
             final String concreteName = concreteTinyType.getName();
 
-            final String stringify = Template.of(
+            Template.of(
                     "public String stringify(Object source){",
                     "  if(source==null) {",
                     "    return null;",
                     "  }",
-                    "  return %s(((%s) source).value);",
-                    "}"
-            ).format(TinyTypesReflector.stringifyFunction(concreteTinyType), concreteName);
-            cc.addMethod(CtNewMethod.make(stringify, cc));
+                    "  return {stringify}((({tinytype}) source).value);",
+                    "}")
+                    .with(TinyTypesReflector.bindings(concreteTinyType))
+                    .asMethodFor(cc);
 
-            final String parse = Template.of(
+            Template.of(
                     "public Object parse(String source){",
-                    "  return new %s(%s(source));",
-                    "}"
-            ).format(concreteName, TinyTypesReflector.parseFunction(concreteTinyType));
-            cc.addMethod(CtNewMethod.make(parse, cc));
+                    "  return new {tinytype}({parse}(source));",
+                    "}")
+                    .with(TinyTypesReflector.bindings(concreteTinyType))
+                    .asMethodFor(cc);
 
-            final String create = Template.of(
+            Template.of(
                     "public Object create(Object value) {",
-                    "  return new %s((%svalue)%s); ",
-                    "}"
-            ).format(concreteName, TinyTypesReflector.boxCast(concreteTinyType), TinyTypesReflector.unboxFunctionCall(concreteTinyType));
-            cc.addMethod(CtNewMethod.make(create, cc));
+                    "  return new {tinytype}(({boxcast}value){unboxmethodcall}); ",
+                    "}")
+                    .with(TinyTypesReflector.bindings(concreteTinyType))
+                    .asMethodFor(cc);
 
-            final String sqlTypes = Template.of(
+            Template.of(
                     "public int[] sqlTypes(){",
-                    "  return new int[]{ %d }; ",
-                    "}"
-            ).format(TinyTypesReflector.sqlType(concreteTinyType));
+                    "  return new int[]{ {sqltype} }; ",
+                    "}")
+                    .with(TinyTypesReflector.bindings(concreteTinyType))
+                    .asMethodFor(cc);
 
-            cc.addMethod(CtNewMethod.make(sqlTypes, cc));
-
-            final String unwrap = Template.of(
+            Template.of(
                     "public java.io.Serializable unwrap(Object source){",
-                    "  return %s(((%s) source).value); ",
-                    "}"
-            ).format(TinyTypesReflector.boxFunction(concreteTinyType), concreteName);
+                    "  return {boxfn}((({tinytype}) source).value); ",
+                    "}")
+                    .with(TinyTypesReflector.bindings(concreteTinyType))
+                    .asMethodFor(cc);
+            Template.of(
+                    "public Class returnedClass(){ ",
+                    "  return {tinytype}.class; ",
+                    "}")
+                    .with(TinyTypesReflector.bindings(concreteTinyType))
+                    .asMethodFor(cc);
 
-            cc.addMethod(CtNewMethod.make(unwrap, cc));
-
-            cc.addMethod(CtNewMethod.make(String.format("public Class returnedClass(){ return %s.class; }", concreteName), cc));
             return (UserType) cc.toClass().newInstance();
         } catch (Exception ex) {
             throw new IllegalStateException(String.format("while generating usertype for %s: ", concreteTinyType), ex);

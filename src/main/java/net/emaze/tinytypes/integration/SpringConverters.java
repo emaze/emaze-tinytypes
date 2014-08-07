@@ -43,25 +43,21 @@ public class SpringConverters {
                     new SignatureAttribute.TypeArgument(new ClassType(String.class.getName())),
                     new SignatureAttribute.TypeArgument(new ClassType(concreteTinyType.getName())),})
             }).encode());
-            final String method = Template.of(
-                    "public %s convert(String source) {",
-                    "  return new %s(%s(source));",
-                    "}"
-            ).format(
-                    concreteTinyType.getName(),
-                    concreteTinyType.getName(),
-                    TinyTypesReflector.parseFunction(concreteTinyType)
-            );
 
-            cc.addMethod(CtNewMethod.make(method, cc));
-            final String bridgeMethod = Template.of(
+            Template.of(
+                    "public {tinytype} convert(String source) {",
+                    "  return new {tinytype}({parse}(source));",
+                    "}")
+                    .with(TinyTypesReflector.bindings(concreteTinyType))
+                    .asMethodFor(cc);
+
+            Template.of(
                     "public Object convert(Object source) {",
-                    "  return (%s)convert((String)source);",
-                    "}"
-            ).format(
-                    concreteTinyType.getName()
-            );
-            cc.addMethod(CtNewMethod.make(bridgeMethod, cc));
+                    "  return ({tinytype})convert((String)source);",
+                    "}")
+                    .with(TinyTypesReflector.bindings(concreteTinyType))
+                    .asMethodFor(cc);
+
             final Object instance = cc.toClass().newInstance();
             return (Converter<?, ?>) instance;
         } catch (ClassNotFoundException | CannotCompileException | InstantiationException | NotFoundException | IllegalAccessException ex) {

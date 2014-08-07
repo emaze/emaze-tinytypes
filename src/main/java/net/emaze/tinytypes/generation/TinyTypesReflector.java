@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import net.emaze.tinytypes.ByteTinyType;
@@ -27,135 +28,67 @@ import org.springframework.core.type.classreading.MetadataReaderFactory;
  */
 public class TinyTypesReflector {
 
-    public static String boxCast(Class<?> tinyType) {
+    public static Map<String, String> bindings(Class<?> tinyType) {
         if (LongTinyType.class.isAssignableFrom(tinyType)) {
-            return "(Long)";
+            final Map<String, String> r = new HashMap<>();
+            r.put("tinytype", tinyType.getName());
+            r.put("boxcast", "(Long)");
+            r.put("boxfn", "Long.valueOf");
+            r.put("nestedtype", "long");
+            r.put("parse", "Long.parseLong");
+            r.put("stringify", "Long.toString");
+            r.put("unboxmethodcall", ".longValue()");
+            r.put("sqltype", Integer.toString(StandardBasicTypes.LONG.sqlType()));
+            return r;
         }
         if (IntTinyType.class.isAssignableFrom(tinyType)) {
-            return "(Integer)";
+            final Map<String, String> r = new HashMap<>();
+            r.put("tinytype", tinyType.getName());
+            r.put("boxcast", "(Integer)");
+            r.put("boxfn", "Integer.valueOf");
+            r.put("nestedtype", "int");
+            r.put("parse", "Integer.parseInt");
+            r.put("stringify", "Integer.toString");
+            r.put("unboxmethodcall", ".intValue()");
+            r.put("sqltype", Integer.toString(StandardBasicTypes.INTEGER.sqlType()));
+            return r;
         }
         if (ShortTinyType.class.isAssignableFrom(tinyType)) {
-            return "(Short)";
-        }
-        if (ByteTinyType.class.isAssignableFrom(tinyType)) {
-            return "(Byte)";
-        }
-        if (StringTinyType.class.isAssignableFrom(tinyType)) {
-            return "(String)";
-        }
-        throw new IllegalStateException(String.format("unknown tiny type: %s", tinyType));
-    }
+            final Map<String, String> r = new HashMap<>();
+            r.put("tinytype", tinyType.getName());
+            r.put("boxcast", "(Short)");
+            r.put("boxfn", "Short.valueOf");
+            r.put("nestedtype", "short");
+            r.put("parse", "Short.parseShort");
+            r.put("stringify", "Short.toString");
+            r.put("unboxmethodcall", ".shortValue()");
+            r.put("sqltype", Integer.toString(StandardBasicTypes.SHORT.sqlType()));
 
-    public static String boxFunction(Class<?> tinyType) {
-        if (LongTinyType.class.isAssignableFrom(tinyType)) {
-            return "Long.valueOf";
-        }
-        if (IntTinyType.class.isAssignableFrom(tinyType)) {
-            return "Integer.valueOf";
-        }
-        if (ShortTinyType.class.isAssignableFrom(tinyType)) {
-            return "Short.valueOf";
+            return r;
         }
         if (ByteTinyType.class.isAssignableFrom(tinyType)) {
-            return "Byte.valueOf";
+            final Map<String, String> r = new HashMap<>();
+            r.put("tinytype", tinyType.getName());
+            r.put("boxcast", "(Byte)");
+            r.put("boxfn", "Byte.valueOf");
+            r.put("nestedtype", "byte");
+            r.put("parse", "Byte.parseByte");
+            r.put("stringify", "Byte.toString");
+            r.put("unboxmethodcall", ".byteValue()");
+            r.put("sqltype", Integer.toString(StandardBasicTypes.BYTE.sqlType()));
+            return r;
         }
         if (StringTinyType.class.isAssignableFrom(tinyType)) {
-            return "";
-        }
-        throw new IllegalStateException(String.format("unknown tiny type: %s", tinyType));
-    }
-
-    public static Class<?> nestedType(Class<?> tinyType) {
-        if (LongTinyType.class.isAssignableFrom(tinyType)) {
-            return long.class;
-        }
-        if (IntTinyType.class.isAssignableFrom(tinyType)) {
-            return int.class;
-        }
-        if (ShortTinyType.class.isAssignableFrom(tinyType)) {
-            return short.class;
-        }
-        if (ByteTinyType.class.isAssignableFrom(tinyType)) {
-            return byte.class;
-        }
-        if (StringTinyType.class.isAssignableFrom(tinyType)) {
-            return String.class;
-        }
-        throw new IllegalStateException(String.format("unknown tiny type: %s", tinyType));
-    }
-
-    public static String parseFunction(Class<?> tinyType) {
-        if (LongTinyType.class.isAssignableFrom(tinyType)) {
-            return "Long.parseLong";
-        }
-        if (IntTinyType.class.isAssignableFrom(tinyType)) {
-            return "Integer.parseInt";
-        }
-        if (ShortTinyType.class.isAssignableFrom(tinyType)) {
-            return "Short.parseShort";
-        }
-        if (ByteTinyType.class.isAssignableFrom(tinyType)) {
-            return "Byte.parseByte";
-        }
-        if (StringTinyType.class.isAssignableFrom(tinyType)) {
-            return "";
-        }
-        throw new IllegalStateException(String.format("unknown tiny type: %s", tinyType));
-    }
-
-    public static String stringifyFunction(Class<?> tinyType) {
-        if (LongTinyType.class.isAssignableFrom(tinyType)) {
-            return "Long.toString";
-        }
-        if (IntTinyType.class.isAssignableFrom(tinyType)) {
-            return "Integer.toString";
-        }
-        if (ShortTinyType.class.isAssignableFrom(tinyType)) {
-            return "Short.toString";
-        }
-        if (ByteTinyType.class.isAssignableFrom(tinyType)) {
-            return "Byte.toString";
-        }
-        if (StringTinyType.class.isAssignableFrom(tinyType)) {
-            return "";
-        }
-        throw new IllegalStateException(String.format("unknown tiny type: %s", tinyType));
-    }
-
-    public static String unboxFunctionCall(Class<?> tinyType) {
-        if (LongTinyType.class.isAssignableFrom(tinyType)) {
-            return ".longValue()";
-        }
-        if (IntTinyType.class.isAssignableFrom(tinyType)) {
-            return ".intValue()";
-        }
-        if (ShortTinyType.class.isAssignableFrom(tinyType)) {
-            return ".shortValue()";
-        }
-        if (ByteTinyType.class.isAssignableFrom(tinyType)) {
-            return ".byteValue()";
-        }
-        if (StringTinyType.class.isAssignableFrom(tinyType)) {
-            return "";
-        }
-        throw new IllegalStateException(String.format("unknown tiny type: %s", tinyType));
-    }
-
-    public static int sqlType(Class<?> tinyType) {
-        if (LongTinyType.class.isAssignableFrom(tinyType)) {
-            return StandardBasicTypes.LONG.sqlType();
-        }
-        if (IntTinyType.class.isAssignableFrom(tinyType)) {
-            return StandardBasicTypes.INTEGER.sqlType();
-        }
-        if (ShortTinyType.class.isAssignableFrom(tinyType)) {
-            return StandardBasicTypes.SHORT.sqlType();
-        }
-        if (ByteTinyType.class.isAssignableFrom(tinyType)) {
-            return StandardBasicTypes.BYTE.sqlType();
-        }
-        if (StringTinyType.class.isAssignableFrom(tinyType)) {
-            return StandardBasicTypes.TEXT.sqlType();
+            final Map<String, String> r = new HashMap<>();
+            r.put("tinytype", tinyType.getName());
+            r.put("boxcast", "(String)");
+            r.put("boxfn", "");
+            r.put("nestedtype", "String");
+            r.put("parse", "");
+            r.put("stringify", "");
+            r.put("unboxmethodcall", "");
+            r.put("sqltype", Integer.toString(StandardBasicTypes.TEXT.sqlType()));
+            return r;
         }
         throw new IllegalStateException(String.format("unknown tiny type: %s", tinyType));
     }

@@ -57,21 +57,16 @@ public class JacksonTinyTypesModule extends SimpleModule {
             }
             final CtClass cc = pool.makeClass(className);
             cc.setSuperclass(pool.get(JsonDeserializer.class.getName()));
-            final String method = Template.of(
+            Template.of(
                     "public Object deserialize(com.fasterxml.jackson.core.JsonParser jp, com.fasterxml.jackson.databind.DeserializationContext ctxt)",
                     "  throws java.io.IOException, com.fasterxml.jackson.core.JsonProcessingException",
                     "{",
-                    "   final %s value = (%sjp.readValueAs(%s.class))%s;",
-                    "   return new %s(value);",
+                    "   final {nestedtype} value = ({boxcast}jp.readValueAs({nestedtype}.class)){unboxmethodcall};",
+                    "   return new {tinytype}(value);",
                     "}"
-            ).format(
-                    TinyTypesReflector.nestedType(concreteTinyType).getSimpleName(),
-                    TinyTypesReflector.boxCast(concreteTinyType),
-                    TinyTypesReflector.nestedType(concreteTinyType).getSimpleName(),
-                    TinyTypesReflector.unboxFunctionCall(concreteTinyType),
-                    concreteTinyType.getName()
-            );
-            cc.addMethod(CtNewMethod.make(method, cc));
+            )
+                    .with(TinyTypesReflector.bindings(concreteTinyType))
+                    .asMethodFor(cc);
             return (JsonDeserializer) cc.toClass().newInstance();
         } catch (ClassNotFoundException | CannotCompileException | InstantiationException | IllegalAccessException | NotFoundException ex) {
             throw new IllegalStateException(ex);
@@ -88,14 +83,15 @@ public class JacksonTinyTypesModule extends SimpleModule {
             }
             final CtClass cc = pool.makeClass(className);
             cc.setSuperclass(pool.get(KeyDeserializer.class.getName()));
-            final String method = Template.of(
+            Template.of(
                     "public Object deserializeKey(String key, com.fasterxml.jackson.databind.DeserializationContext ctxt)",
                     "  throws java.io.IOException, com.fasterxml.jackson.core.JsonProcessingException",
                     "{",
-                    "  return new %s(%s(key)); ",
+                    "  return new {tinytype}({parse}(key)); ",
                     "}"
-            ).format(concreteTinyType.getName(), TinyTypesReflector.parseFunction(concreteTinyType));
-            cc.addMethod(CtNewMethod.make(method, cc));
+            )
+                    .with(TinyTypesReflector.bindings(concreteTinyType))
+                    .asMethodFor(cc);
             return (KeyDeserializer) cc.toClass().newInstance();
         } catch (ClassNotFoundException | CannotCompileException | InstantiationException | IllegalAccessException | NotFoundException ex) {
             throw new IllegalStateException(ex);
