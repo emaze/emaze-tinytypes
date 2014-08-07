@@ -38,6 +38,23 @@ public class HibernateTest {
     private TransactionTemplate transactionTemplate;
 
     @Test
+    public void canSerializeAndDeserializeALongTinyType() {
+        transactionTemplate.execute((status) -> {
+            final LongBean mb = new LongBean();
+            mb.setId(new SampleLongTinyType(123));
+            hibernate.getCurrentSession().merge(mb);
+            return null;
+        });
+
+        final SampleLongTinyType got = transactionTemplate.execute((status) -> {
+            final LongBean b = (LongBean) hibernate.getCurrentSession().load(LongBean.class, new SampleLongTinyType(123));
+            return b.getId();
+        });
+
+        Assert.assertEquals(123, got.value);
+    }
+
+    @Test
     public void canSerializeAndDeserializeAnIntTinyType() {
         transactionTemplate.execute((status) -> {
             final IntBean mb = new IntBean();
@@ -55,16 +72,33 @@ public class HibernateTest {
     }
 
     @Test
-    public void canSerializeAndDeserializeALongTinyType() {
+    public void canSerializeAndDeserializeAShortTinyType() {
         transactionTemplate.execute((status) -> {
-            final LongBean mb = new LongBean();
-            mb.setId(new SampleLongTinyType(123));
+            final ShortBean mb = new ShortBean();
+            mb.setId(new SampleShortTinyType((short) 123));
             hibernate.getCurrentSession().merge(mb);
             return null;
         });
 
-        final SampleLongTinyType got = transactionTemplate.execute((status) -> {
-            final LongBean b = (LongBean) hibernate.getCurrentSession().load(LongBean.class, new SampleLongTinyType(123));
+        final SampleShortTinyType got = transactionTemplate.execute((status) -> {
+            final ShortBean b = (ShortBean) hibernate.getCurrentSession().load(ShortBean.class, new SampleShortTinyType((short) 123));
+            return b.getId();
+        });
+
+        Assert.assertEquals(123, got.value);
+    }
+
+    @Test
+    public void canSerializeAndDeserializeAByteTinyType() {
+        transactionTemplate.execute((status) -> {
+            final ByteBean mb = new ByteBean();
+            mb.setId(new SampleByteTinyType((byte) 123));
+            hibernate.getCurrentSession().merge(mb);
+            return null;
+        });
+
+        final SampleByteTinyType got = transactionTemplate.execute((status) -> {
+            final ByteBean b = (ByteBean) hibernate.getCurrentSession().load(ByteBean.class, new SampleByteTinyType((byte) 123));
             return b.getId();
         });
 
@@ -100,6 +134,40 @@ public class HibernateTest {
         }
 
         public void setId(SampleIntTinyType id) {
+            this.id = id;
+        }
+
+    }
+
+    @Entity
+    @Table(name = "bytebean")
+    public static class ByteBean {
+
+        @Id
+        private SampleByteTinyType id;
+
+        public SampleByteTinyType getId() {
+            return id;
+        }
+
+        public void setId(SampleByteTinyType id) {
+            this.id = id;
+        }
+
+    }
+
+    @Entity
+    @Table(name = "shortbean")
+    public static class ShortBean {
+
+        @Id
+        private SampleShortTinyType id;
+
+        public SampleShortTinyType getId() {
+            return id;
+        }
+
+        public void setId(SampleShortTinyType id) {
             this.id = id;
         }
 
