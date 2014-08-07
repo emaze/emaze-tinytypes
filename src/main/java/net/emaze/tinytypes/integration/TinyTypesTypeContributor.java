@@ -24,30 +24,38 @@ public class TinyTypesTypeContributor implements TypeContributor {
 
     private final Logger logger = Logger.getLogger(TinyTypesTypeContributor.class);
     private static final String LOCATION_PATTERN_KEY = "hibernate.tinytypes.location.pattern";
+    private static final String CLASS_NAME_PATTERN = "net.emaze.tinytypes.gen.Hibernate%s";
 
     @Override
     public void contribute(TypeContributions typeContributions, ServiceRegistry serviceRegistry) {
         final ConfigurationService configuration = serviceRegistry.getService(ConfigurationService.class);
         final String cp = configuration.getSetting(LOCATION_PATTERN_KEY, String.class, null);
-        if(cp == null){
+        if (cp == null) {
             throw new IllegalStateException(String.format("%s must be set (i.e: %s)", LOCATION_PATTERN_KEY, "classpath*:/net/emaze/**/*.class"));
         }
         for (Class<?> tinyType : TinyTypesReflector.scan(cp)) {
             logger.info(String.format("found %s", tinyType.getSimpleName()));
+            if (hibernateTypeExists(tinyType)) {
+                logger.info(String.format("Type %s already registered.", tinyType.getSimpleName()));
+                continue;
+            }
             final UserType type = createHibernateType(tinyType);
             typeContributions.contributeType(type, new String[]{tinyType.getName()});
             logger.info(String.format("created and registered %s", type));
         }
     }
 
+    private static boolean hibernateTypeExists(Class<?> concreteTinyType) {
+        final ClassPool pool = ClassPool.getDefault();
+        final String className = String.format(CLASS_NAME_PATTERN, concreteTinyType.getSimpleName());
+        return pool.getOrNull(className) != null;
+    }
+
     private static UserType createHibernateType(Class<?> concreteTinyType) {
         try {
             final ClassPool pool = ClassPool.getDefault();
             pool.appendClassPath(new ClassClassPath(concreteTinyType));
-            final String className = String.format("net.emaze.tinytypes.gen.Hibernate%s", concreteTinyType.getSimpleName());
-            if (pool.getOrNull(className) != null) {
-                return (UserType) Class.forName(className).newInstance();
-            }
+            final String className = String.format(CLASS_NAME_PATTERN, concreteTinyType.getSimpleName());
             final CtClass cc = pool.makeClass(className);
             cc.setSuperclass(pool.get(HibernateTinyType.class.getName()));
             final String concreteName = concreteTinyType.getName();
