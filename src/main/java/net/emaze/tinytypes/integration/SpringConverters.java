@@ -4,7 +4,6 @@ import javassist.CannotCompileException;
 import javassist.ClassClassPath;
 import javassist.ClassPool;
 import javassist.CtClass;
-import javassist.CtNewMethod;
 import javassist.NotFoundException;
 import javassist.bytecode.SignatureAttribute;
 import javassist.bytecode.SignatureAttribute.ClassSignature;
@@ -46,7 +45,7 @@ public class SpringConverters {
 
             Template.of(
                     "public {tinytype} convert(String source) {",
-                    "  return new {tinytype}({parse}(source));",
+                    "  return {factory}({parse}(source));",
                     "}")
                     .with(TinyTypesReflector.bindings(concreteTinyType))
                     .asMethodFor(cc);

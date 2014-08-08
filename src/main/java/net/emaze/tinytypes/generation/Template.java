@@ -1,12 +1,16 @@
 package net.emaze.tinytypes.generation;
 
+import java.lang.reflect.Modifier;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javassist.CannotCompileException;
 import javassist.CtClass;
+import javassist.CtConstructor;
+import javassist.CtField;
 import javassist.CtMethod;
+import javassist.CtNewConstructor;
 import javassist.CtNewMethod;
 
 /**
@@ -44,6 +48,18 @@ public class Template {
         final CtMethod method = CtNewMethod.make(render(), cc);
         cc.addMethod(method);
         return method;
+    }
+
+    public CtConstructor asConstructorFor(CtClass cc) throws CannotCompileException {
+        final CtConstructor ctor = CtNewConstructor.make(render(), cc);
+        cc.addConstructor(ctor);
+        return ctor;
+    }
+
+    public CtField asFieldFor(CtClass cc) throws CannotCompileException {
+        final CtField field = CtField.make(render(), cc);
+        cc.addField(field);
+        return field;
     }
 
 }

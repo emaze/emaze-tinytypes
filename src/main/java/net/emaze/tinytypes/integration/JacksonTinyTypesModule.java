@@ -9,6 +9,7 @@ import com.fasterxml.jackson.databind.KeyDeserializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import java.io.IOException;
+import java.util.Map;
 import javassist.CannotCompileException;
 import javassist.ClassClassPath;
 import javassist.ClassPool;
@@ -55,6 +56,7 @@ public class JacksonTinyTypesModule extends SimpleModule {
             if (pool.getOrNull(className) != null) {
                 return (JsonDeserializer) Class.forName(className).newInstance();
             }
+            final Map<String, String> bindings = TinyTypesReflector.bindings(concreteTinyType);
             final CtClass cc = pool.makeClass(className);
             cc.setSuperclass(pool.get(JsonDeserializer.class.getName()));
             Template.of(
@@ -62,10 +64,9 @@ public class JacksonTinyTypesModule extends SimpleModule {
                     "  throws java.io.IOException, com.fasterxml.jackson.core.JsonProcessingException",
                     "{",
                     "   final {nestedtype} value = ({boxcast}jp.readValueAs({nestedtype}.class)){unboxmethodcall};",
-                    "   return new {tinytype}(value);",
-                    "}"
-            )
-                    .with(TinyTypesReflector.bindings(concreteTinyType))
+                    "   return {factory}(value);",
+                    "}")
+                    .with(bindings)
                     .asMethodFor(cc);
             return (JsonDeserializer) cc.toClass().newInstance();
         } catch (ClassNotFoundException | CannotCompileException | InstantiationException | IllegalAccessException | NotFoundException ex) {
@@ -77,20 +78,21 @@ public class JacksonTinyTypesModule extends SimpleModule {
         try {
             final ClassPool pool = ClassPool.getDefault();
             pool.appendClassPath(new ClassClassPath(concreteTinyType));
-            final String className = String.format("net.emaze.tinytypes.integration.%sKeyDeserializer", concreteTinyType.getSimpleName());
+            final String className = String.format("net.emaze.tinytypes.gen.%sKeyDeserializer", concreteTinyType.getSimpleName());
             if (pool.getOrNull(className) != null) {
                 return (KeyDeserializer) Class.forName(className).newInstance();
             }
+            final Map<String, String> bindings = TinyTypesReflector.bindings(concreteTinyType);
             final CtClass cc = pool.makeClass(className);
             cc.setSuperclass(pool.get(KeyDeserializer.class.getName()));
+
             Template.of(
                     "public Object deserializeKey(String key, com.fasterxml.jackson.databind.DeserializationContext ctxt)",
                     "  throws java.io.IOException, com.fasterxml.jackson.core.JsonProcessingException",
                     "{",
-                    "  return new {tinytype}({parse}(key)); ",
-                    "}"
-            )
-                    .with(TinyTypesReflector.bindings(concreteTinyType))
+                    "  return {factory}({parse}(key)); ",
+                    "}")
+                    .with(bindings)
                     .asMethodFor(cc);
             return (KeyDeserializer) cc.toClass().newInstance();
         } catch (ClassNotFoundException | CannotCompileException | InstantiationException | IllegalAccessException | NotFoundException ex) {

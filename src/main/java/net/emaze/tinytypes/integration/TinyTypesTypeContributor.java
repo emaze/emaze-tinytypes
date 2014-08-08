@@ -61,14 +61,14 @@ public class TinyTypesTypeContributor implements TypeContributor {
 
             Template.of(
                     "public Object parse(String source){",
-                    "  return new {tinytype}({parse}(source));",
+                    "  return {factory}({parse}(source));",
                     "}")
                     .with(TinyTypesReflector.bindings(concreteTinyType))
                     .asMethodFor(cc);
 
             Template.of(
                     "public Object create(Object value) {",
-                    "  return new {tinytype}(({boxcast}value){unboxmethodcall}); ",
+                    "  return {factory}(({boxcast}value){unboxmethodcall}); ",
                     "}")
                     .with(TinyTypesReflector.bindings(concreteTinyType))
                     .asMethodFor(cc);

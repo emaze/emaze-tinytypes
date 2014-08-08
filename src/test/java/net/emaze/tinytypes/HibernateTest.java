@@ -55,6 +55,23 @@ public class HibernateTest {
     }
 
     @Test
+    public void canSerializeAndDeserializeAFWLongTinyType() {
+        transactionTemplate.execute((status) -> {
+            final FlyWeightedLongBean mb = new FlyWeightedLongBean();
+            mb.setId(new SampleFlyweightedLongTinyType(123));
+            hibernate.getCurrentSession().merge(mb);
+            return null;
+        });
+
+        final SampleFlyweightedLongTinyType got = transactionTemplate.execute((status) -> {
+            final FlyWeightedLongBean b = (FlyWeightedLongBean) hibernate.getCurrentSession().load(FlyWeightedLongBean.class, new SampleFlyweightedLongTinyType(123));
+            return b.getId();
+        });
+
+        Assert.assertEquals(123, got.value);
+    }
+
+    @Test
     public void canSerializeAndDeserializeAnIntTinyType() {
         transactionTemplate.execute((status) -> {
             final IntBean mb = new IntBean();
@@ -185,6 +202,23 @@ public class HibernateTest {
         }
 
         public void setId(SampleLongTinyType id) {
+            this.id = id;
+        }
+
+    }
+
+    @Entity
+    @Table(name = "fwlongbean")
+    public static class FlyWeightedLongBean {
+
+        @Id
+        private SampleFlyweightedLongTinyType id;
+
+        public SampleFlyweightedLongTinyType getId() {
+            return id;
+        }
+
+        public void setId(SampleFlyweightedLongTinyType id) {
             this.id = id;
         }
 
