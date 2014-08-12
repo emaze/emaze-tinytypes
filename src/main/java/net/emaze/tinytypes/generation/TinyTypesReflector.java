@@ -1,6 +1,8 @@
 package net.emaze.tinytypes.generation;
 
 import java.io.IOException;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -8,15 +10,12 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import javassist.CannotCompileException;
 import net.emaze.tinytypes.BooleanTinyType;
 import net.emaze.tinytypes.ByteTinyType;
 import net.emaze.tinytypes.IntTinyType;
 import net.emaze.tinytypes.LongTinyType;
 import net.emaze.tinytypes.ShortTinyType;
 import net.emaze.tinytypes.StringTinyType;
-import net.emaze.tinytypes.flywieghts.Flyweight;
-import net.emaze.tinytypes.flywieghts.FlyweightGenerator;
 import org.hibernate.type.StandardBasicTypes;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
@@ -31,11 +30,28 @@ import org.springframework.core.type.classreading.MetadataReaderFactory;
  */
 public class TinyTypesReflector {
 
+    private static String factory(Class<?> tinyType, Class<?> nestedType){
+        final List<Method> factories = Stream.of(tinyType.getMethods())
+                .filter(m -> Modifier.isStatic(m.getModifiers()))
+                .filter(m -> m.getParameterCount() == 1)
+                .filter(m -> m.getParameterTypes()[0].equals(nestedType))
+                .filter(m -> m.getReturnType().equals(tinyType))
+                .collect(Collectors.toList());
+        if(factories.isEmpty()){
+            return "new " + tinyType.getName();
+        }
+        return String.format("%s.%s", tinyType.getName(), factories.get(0).getName());
+    }
+    
+    
     public static Map<String, String> bindings(Class<?> tinyType) {
+        
+        
         if (LongTinyType.class.isAssignableFrom(tinyType)) {
+
             final Map<String, String> r = new HashMap<>();
             r.put("tinytype", tinyType.getName());
-            r.put("factory", "new " + tinyType.getName());
+            r.put("factory", factory(tinyType, long.class));
             r.put("boxcast", "(Long)");
             r.put("boxfn", "Long.valueOf");
             r.put("nestedtype", "long");
@@ -43,22 +59,12 @@ public class TinyTypesReflector {
             r.put("stringify", "Long.toString");
             r.put("unboxmethodcall", ".longValue()");
             r.put("sqltype", Integer.toString(StandardBasicTypes.LONG.sqlType()));
-            r.put("usefw", "false");
-            if (tinyType.isAnnotationPresent(Flyweight.class)) {
-                final Flyweight f = tinyType.getAnnotation(Flyweight.class);
-                r.put("usefw", "true");
-                r.put("factory", String.format("net.emaze.tinytypes.gen.%sFlyWeight.fw", tinyType.getSimpleName()));
-                r.put("fwminvalue", Integer.toString(f.min()));
-                r.put("fwmaxvalue", Integer.toString(f.max()));
-                r.put("fwlastarrayindex", Integer.toString(f.max() - f.min()));
-                r.put("fwlength", Integer.toString(1 + f.max() - f.min()));
-            }
             return r;
         }
         if (IntTinyType.class.isAssignableFrom(tinyType)) {
             final Map<String, String> r = new HashMap<>();
             r.put("tinytype", tinyType.getName());
-            r.put("factory", "new " + tinyType.getName());
+            r.put("factory", factory(tinyType, int.class));
             r.put("boxcast", "(Integer)");
             r.put("boxfn", "Integer.valueOf");
             r.put("nestedtype", "int");
@@ -66,22 +72,12 @@ public class TinyTypesReflector {
             r.put("stringify", "Integer.toString");
             r.put("unboxmethodcall", ".intValue()");
             r.put("sqltype", Integer.toString(StandardBasicTypes.INTEGER.sqlType()));
-            r.put("usefw", "false");
-            if (tinyType.isAnnotationPresent(Flyweight.class)) {
-                final Flyweight f = tinyType.getAnnotation(Flyweight.class);
-                r.put("usefw", "true");
-                r.put("factory", String.format("net.emaze.tinytypes.gen.%sFlyWeight.fw", tinyType.getSimpleName()));
-                r.put("fwminvalue", Integer.toString(f.min()));
-                r.put("fwmaxvalue", Integer.toString(f.max()));
-                r.put("fwlastarrayindex", Integer.toString(f.max() - f.min()));
-                r.put("fwlength", Integer.toString(1 + f.max() - f.min()));
-            }
             return r;
         }
         if (ShortTinyType.class.isAssignableFrom(tinyType)) {
             final Map<String, String> r = new HashMap<>();
             r.put("tinytype", tinyType.getName());
-            r.put("factory", "new " + tinyType.getName());
+            r.put("factory", factory(tinyType, short.class));
             r.put("boxcast", "(Short)");
             r.put("boxfn", "Short.valueOf");
             r.put("nestedtype", "short");
@@ -89,22 +85,12 @@ public class TinyTypesReflector {
             r.put("stringify", "Short.toString");
             r.put("unboxmethodcall", ".shortValue()");
             r.put("sqltype", Integer.toString(StandardBasicTypes.SHORT.sqlType()));
-            r.put("usefw", "false");
-            if (tinyType.isAnnotationPresent(Flyweight.class)) {
-                final Flyweight f = tinyType.getAnnotation(Flyweight.class);
-                r.put("usefw", "true");
-                r.put("factory", String.format("net.emaze.tinytypes.gen.%sFlyWeight.fw", tinyType.getSimpleName()));
-                r.put("fwminvalue", Integer.toString(f.min()));
-                r.put("fwmaxvalue", Integer.toString(f.max()));
-                r.put("fwlastarrayindex", Integer.toString(f.max() - f.min()));
-                r.put("fwlength", Integer.toString(1 + f.max() - f.min()));
-            }
             return r;
         }
         if (ByteTinyType.class.isAssignableFrom(tinyType)) {
             final Map<String, String> r = new HashMap<>();
             r.put("tinytype", tinyType.getName());
-            r.put("factory", "new " + tinyType.getName());
+            r.put("factory", factory(tinyType, byte.class));
             r.put("boxcast", "(Byte)");
             r.put("boxfn", "Byte.valueOf");
             r.put("nestedtype", "byte");
@@ -112,22 +98,12 @@ public class TinyTypesReflector {
             r.put("stringify", "Byte.toString");
             r.put("unboxmethodcall", ".byteValue()");
             r.put("sqltype", Integer.toString(StandardBasicTypes.BYTE.sqlType()));
-            r.put("usefw", "false");
-            if (tinyType.isAnnotationPresent(Flyweight.class)) {
-                final Flyweight f = tinyType.getAnnotation(Flyweight.class);
-                r.put("usefw", "true");
-                r.put("factory", String.format("net.emaze.tinytypes.gen.%sFlyWeight.fw", tinyType.getSimpleName()));
-                r.put("fwminvalue", Integer.toString(f.min()));
-                r.put("fwmaxvalue", Integer.toString(f.max()));
-                r.put("fwlastarrayindex", Integer.toString(f.max() - f.min()));
-                r.put("fwlength", Integer.toString(1 + f.max() - f.min()));
-            }
             return r;
         }
         if (BooleanTinyType.class.isAssignableFrom(tinyType)) {
             final Map<String, String> r = new HashMap<>();
             r.put("tinytype", tinyType.getName());
-            r.put("factory", "new " + tinyType.getName());
+            r.put("factory", factory(tinyType, boolean.class));
             r.put("boxcast", "(Boolean)");
             r.put("boxfn", "Boolean.valueOf");
             r.put("nestedtype", "boolean");
@@ -135,14 +111,12 @@ public class TinyTypesReflector {
             r.put("stringify", "Boolean.toString");
             r.put("unboxmethodcall", ".booleanValue()");
             r.put("sqltype", Integer.toString(StandardBasicTypes.BOOLEAN.sqlType()));
-            r.put("usefw", "true");
-            r.put("factory", String.format("net.emaze.tinytypes.gen.%sFlyWeight.fw", tinyType.getSimpleName()));
             return r;
         }
         if (StringTinyType.class.isAssignableFrom(tinyType)) {
             final Map<String, String> r = new HashMap<>();
             r.put("tinytype", tinyType.getName());
-            r.put("factory", "new " + tinyType.getName());
+            r.put("factory", factory(tinyType, String.class));
             r.put("boxcast", "(String)");
             r.put("boxfn", "");
             r.put("nestedtype", "String");
@@ -150,7 +124,6 @@ public class TinyTypesReflector {
             r.put("stringify", "");
             r.put("unboxmethodcall", "");
             r.put("sqltype", Integer.toString(StandardBasicTypes.TEXT.sqlType()));
-            r.put("usefw", "false");
             return r;
         }
         throw new IllegalStateException(String.format("unknown tiny type: %s", tinyType));
@@ -183,11 +156,8 @@ public class TinyTypesReflector {
                 tinyTypes.add(Class.forName(cm.getClassName()));
             }
             LOCATION_PATTERN_TO_TYPES_CACHE.put(locationPattern, tinyTypes);
-            for (Class<?> tinyType : tinyTypes) {
-                FlyweightGenerator.createIfNeeded(tinyType);
-            }
             return tinyTypes;
-        } catch (ClassNotFoundException | CannotCompileException | IOException ex) {
+        } catch (ClassNotFoundException | IOException ex) {
             throw new IllegalStateException(ex);
         }
 

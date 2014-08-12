@@ -24,11 +24,5 @@ public class SpringTest {
         SampleIntTinyType got = registry.convert("321", SampleIntTinyType.class);
         Assert.assertEquals(321, got.value);
     }
-    @Test
-    public void canConvertFwTinyTypeFromString() {
-        DefaultFormattingConversionService registry = new DefaultFormattingConversionService();
-        SpringConverters.register(registry, "classpath*:/net/emaze/**/*.class");
-        SampleFlyweightedLongTinyType got = registry.convert("321", SampleFlyweightedLongTinyType.class);
-        Assert.assertEquals(321, got.value);
-    }
+
 }

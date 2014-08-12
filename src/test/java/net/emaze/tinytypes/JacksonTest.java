@@ -35,19 +35,4 @@ public class JacksonTest {
         Assert.assertEquals(123, got.value);
     }
 
-    @Test
-    public void canSerializeFw() throws JsonProcessingException {
-        final ObjectMapper m = new ObjectMapper();
-        m.registerModule(new JacksonTinyTypesModule("classpath*:/net/emaze/**/*.class"));
-        final String got = m.writeValueAsString(new SampleFlyweightedLongTinyType(123));
-        Assert.assertEquals("123", got);
-    }
-
-    @Test
-    public void canDeserializeFw() throws JsonProcessingException, IOException {
-        final ObjectMapper m = new ObjectMapper();
-        m.registerModule(new JacksonTinyTypesModule("classpath*:/net/emaze/**/*.class"));
-        SampleFlyweightedLongTinyType got = m.readValue("123", SampleFlyweightedLongTinyType.class);
-        Assert.assertEquals(123, got.value);
-    }
 }
