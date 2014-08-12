@@ -3,7 +3,6 @@ package net.emaze.tinytypes.integration;
 import javassist.ClassClassPath;
 import javassist.ClassPool;
 import javassist.CtClass;
-import javassist.CtNewMethod;
 import net.emaze.tinytypes.generation.Template;
 import net.emaze.tinytypes.generation.TinyTypesReflector;
 import org.hibernate.engine.config.spi.ConfigurationService;
