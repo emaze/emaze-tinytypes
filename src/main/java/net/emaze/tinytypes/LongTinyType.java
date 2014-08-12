@@ -10,7 +10,7 @@ public abstract class LongTinyType implements Serializable, Comparable<LongTinyT
 
     public final long value;
 
-    public LongTinyType(long value) {
+    protected LongTinyType(long value) {
         this.value = value;
     }
 

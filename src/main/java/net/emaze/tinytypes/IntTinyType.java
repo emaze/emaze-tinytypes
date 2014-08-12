@@ -10,7 +10,7 @@ public abstract class IntTinyType implements Serializable, Comparable<IntTinyTyp
 
     public final int value;
 
-    public IntTinyType(int value) {
+    protected IntTinyType(int value) {
         this.value = value;
     }
 

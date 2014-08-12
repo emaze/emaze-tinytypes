@@ -50,6 +50,12 @@ public class Template {
         return method;
     }
 
+    public CtConstructor asStaticInitializerFor(CtClass cc) throws CannotCompileException {
+        final CtConstructor init = cc.makeClassInitializer();
+        init.insertAfter(render());
+        return init;
+    }
+
     public CtConstructor asConstructorFor(CtClass cc) throws CannotCompileException {
         final CtConstructor ctor = CtNewConstructor.make(render(), cc);
         cc.addConstructor(ctor);

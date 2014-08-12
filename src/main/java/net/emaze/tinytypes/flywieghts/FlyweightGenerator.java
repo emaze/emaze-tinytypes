@@ -1,6 +1,5 @@
 package net.emaze.tinytypes.flywieghts;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
 import javassist.CannotCompileException;
 import javassist.ClassClassPath;
@@ -31,20 +30,43 @@ public class FlyweightGenerator {
             return;
         }
         final CtClass cc = pool.makeClass(className);
+        switch (bindings.get("nestedtype")) {
+            case "boolean":
+                createBooleanFlyweight(bindings, cc);
+                break;
+            case "string":
+                createStringFlyweight(bindings, cc);
+                break;
+            default:
+                createNumericFlyweight(bindings, cc);
+                break;
+        }
+        final Class<?> cls = cc.toClass();
+        logger.info(String.format("flyweight generated for %s size:%s minvalue:%s, maxvalue:%s",
+                concreteTinyType.getSimpleName(),
+                bindings.get("fwlength"),
+                bindings.get("fwminvalue"),
+                bindings.get("fwmaxvalue")
+        ));
+
+    }
+
+    private static void createNumericFlyweight(final Map<String, String> bindings, final CtClass cc) throws CannotCompileException {
         Template.of(
-                "private static {tinytype}[] data;")
+                "private static {tinytype}[] data = new {tinytype}[{fwlength}];")
                 .with(bindings)
                 .asFieldFor(cc);
 
+        
         Template.of(
-                "public static void init(){",
-                "    data = new {tinytype}[{fwlength}];",
+                "{",
                 "    for (int i = 0; i != {fwlastarrayindex}; ++i) {",
                 "        data[i] = new {tinytype}(({nestedtype})i+{fwminvalue});",
                 "    }",
                 "}")
                 .with(bindings)
-                .asMethodFor(cc);
+                .asStaticInitializerFor(cc);
+        
         Template.of(
                 "public static {tinytype} fw({nestedtype} v) {",
                 "    if (v > {fwmaxvalue} || v < {fwminvalue}) {",
@@ -54,13 +76,23 @@ public class FlyweightGenerator {
                 "}")
                 .with(bindings)
                 .asMethodFor(cc);
-        try {
-            final Class<?> cls = cc.toClass();
-            cls.getMethod("init").invoke(cls);
-        } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException | SecurityException ex) {
-            throw new IllegalStateException(ex);
-        }
-        logger.info(String.format("flyweight generated for %s", concreteTinyType.getSimpleName()));
+    }
 
+    private static void createBooleanFlyweight(Map<String, String> bindings, CtClass cc) throws CannotCompileException {
+        Template.of(
+                "private static {tinytype}[] data = new {tinytype}[]{ new {tinytype}(false), new {tinytype}(true) };")
+                .with(bindings)
+                .asFieldFor(cc);
+
+        Template.of(
+                "public static {tinytype} fw({nestedtype} v) {",
+                "    return data[v ? 1: 0];",
+                "}")
+                .with(bindings)
+                .asMethodFor(cc);
+    }
+
+    private static void createStringFlyweight(Map<String, String> bindings, CtClass cc) throws CannotCompileException {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 }

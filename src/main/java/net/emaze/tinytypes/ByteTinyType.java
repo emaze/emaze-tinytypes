@@ -10,7 +10,7 @@ public abstract class ByteTinyType implements Serializable, Comparable<ByteTinyT
 
     public final byte value;
 
-    public ByteTinyType(byte value) {
+    protected ByteTinyType(byte value) {
         this.value = value;
     }
 

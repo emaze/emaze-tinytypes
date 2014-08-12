@@ -10,7 +10,7 @@ public abstract class ShortTinyType implements Serializable, Comparable<ShortTin
 
     public final short value;
 
-    public ShortTinyType(short value) {
+    protected ShortTinyType(short value) {
         this.value = value;
     }
 

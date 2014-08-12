@@ -123,6 +123,23 @@ public class HibernateTest {
     }
 
     @Test
+    public void canSerializeAndDeserializeABooleanTinyType() {
+        transactionTemplate.execute((status) -> {
+            final BooleanBean mb = new BooleanBean();
+            mb.setId(new SampleBooleanTinyType(true));
+            hibernate.getCurrentSession().merge(mb);
+            return null;
+        });
+
+        final SampleBooleanTinyType got = transactionTemplate.execute((status) -> {
+            final BooleanBean b = (BooleanBean) hibernate.getCurrentSession().load(BooleanBean.class, new SampleBooleanTinyType(true));
+            return b.getId();
+        });
+
+        Assert.assertEquals(true, got.value);
+    }
+
+    @Test
     public void canSerializeAndDeserializeAStringTinyType() {
         transactionTemplate.execute((status) -> {
             final StringBean mb = new StringBean();
@@ -168,6 +185,23 @@ public class HibernateTest {
         }
 
         public void setId(SampleByteTinyType id) {
+            this.id = id;
+        }
+
+    }
+
+    @Entity
+    @Table(name = "booleanbean")
+    public static class BooleanBean {
+
+        @Id
+        private SampleBooleanTinyType id;
+
+        public SampleBooleanTinyType getId() {
+            return id;
+        }
+
+        public void setId(SampleBooleanTinyType id) {
             this.id = id;
         }
 

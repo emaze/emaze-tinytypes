@@ -14,8 +14,8 @@ import javassist.CannotCompileException;
 import javassist.ClassClassPath;
 import javassist.ClassPool;
 import javassist.CtClass;
-import javassist.CtNewMethod;
 import javassist.NotFoundException;
+import net.emaze.tinytypes.BooleanTinyType;
 import net.emaze.tinytypes.ByteTinyType;
 import net.emaze.tinytypes.IntTinyType;
 import net.emaze.tinytypes.LongTinyType;
@@ -36,11 +36,13 @@ public class JacksonTinyTypesModule extends SimpleModule {
         this.addSerializer(IntTinyType.class, new IntTinyTypeSerializer());
         this.addSerializer(ShortTinyType.class, new ShortTinyTypeSerializer());
         this.addSerializer(ByteTinyType.class, new ByteTinyTypeSerializer());
+        this.addSerializer(BooleanTinyType.class, new BooleanTinyTypeSerializer());
         this.addSerializer(StringTinyType.class, new StringTinyTypeSerializer());
         this.addKeySerializer(LongTinyType.class, new LongTinyTypeKeySerializer());
         this.addKeySerializer(IntTinyType.class, new IntTinyTypeKeySerializer());
         this.addKeySerializer(ShortTinyType.class, new ShortTinyTypeKeySerializer());
         this.addKeySerializer(ByteTinyType.class, new ByteTinyTypeKeySerializer());
+        this.addKeySerializer(BooleanTinyType.class, new BooleanTinyTypeKeySerializer());
         this.addKeySerializer(StringTinyType.class, new StringTinyTypeKeySerializer());
         for (Class<?> tinyType : TinyTypesReflector.scan(locationPattern)) {
             this.addDeserializer(tinyType, createDeserializer(tinyType));
@@ -132,6 +134,14 @@ public class JacksonTinyTypesModule extends SimpleModule {
         }
     }
 
+    public static class BooleanTinyTypeSerializer extends JsonSerializer<BooleanTinyType> {
+
+        @Override
+        public void serialize(BooleanTinyType st, JsonGenerator jgen, SerializerProvider provider) throws IOException, JsonProcessingException {
+            jgen.writeObject(st.value);
+        }
+    }
+
     public static class StringTinyTypeSerializer extends JsonSerializer<StringTinyType> {
 
         @Override
@@ -169,6 +179,14 @@ public class JacksonTinyTypesModule extends SimpleModule {
         @Override
         public void serialize(ByteTinyType st, JsonGenerator jgen, SerializerProvider provider) throws IOException, JsonProcessingException {
             jgen.writeFieldName(Byte.toString(st.value));
+        }
+    }
+
+    public static class BooleanTinyTypeKeySerializer extends JsonSerializer<BooleanTinyType> {
+
+        @Override
+        public void serialize(BooleanTinyType st, JsonGenerator jgen, SerializerProvider provider) throws IOException, JsonProcessingException {
+            jgen.writeFieldName(Boolean.toString(st.value));
         }
     }
 

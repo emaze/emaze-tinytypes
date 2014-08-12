@@ -6,11 +6,11 @@ import java.io.Serializable;
  *
  * @author rferranti
  */
-public abstract class StringTinyType implements Serializable, Comparable<StringTinyType> {
+public abstract class BooleanTinyType implements Serializable, Comparable<BooleanTinyType> {
 
-    public final String value;
+    public final boolean value;
 
-    protected StringTinyType(String value) {
+    protected BooleanTinyType(boolean value) {
         this.value = value;
     }
 
@@ -20,8 +20,8 @@ public abstract class StringTinyType implements Serializable, Comparable<StringT
     }
 
     @Override
-    public int compareTo(StringTinyType other) {
-        return value.compareTo(other.value);
+    public int compareTo(BooleanTinyType other) {
+        return Boolean.compare(this.value, other.value);
     }
 
     @Override
@@ -32,13 +32,13 @@ public abstract class StringTinyType implements Serializable, Comparable<StringT
         if (rhs.getClass() != this.getClass()) {
             return false;
         }
-        final StringTinyType other = (StringTinyType) rhs;
-        return this.value.equals(other.value);
+        final BooleanTinyType other = (BooleanTinyType) rhs;
+        return this.value == other.value;
     }
 
     @Override
     public int hashCode() {
-        return value.hashCode();
+        return Boolean.hashCode(value);
     }
 
 }

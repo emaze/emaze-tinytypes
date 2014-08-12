@@ -9,6 +9,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javassist.CannotCompileException;
+import net.emaze.tinytypes.BooleanTinyType;
 import net.emaze.tinytypes.ByteTinyType;
 import net.emaze.tinytypes.IntTinyType;
 import net.emaze.tinytypes.LongTinyType;
@@ -123,6 +124,21 @@ public class TinyTypesReflector {
             }
             return r;
         }
+        if (BooleanTinyType.class.isAssignableFrom(tinyType)) {
+            final Map<String, String> r = new HashMap<>();
+            r.put("tinytype", tinyType.getName());
+            r.put("factory", "new " + tinyType.getName());
+            r.put("boxcast", "(Boolean)");
+            r.put("boxfn", "Boolean.valueOf");
+            r.put("nestedtype", "boolean");
+            r.put("parse", "Boolean.parseBoolean");
+            r.put("stringify", "Boolean.toString");
+            r.put("unboxmethodcall", ".booleanValue()");
+            r.put("sqltype", Integer.toString(StandardBasicTypes.BOOLEAN.sqlType()));
+            r.put("usefw", "true");
+            r.put("factory", String.format("net.emaze.tinytypes.gen.%sFlyWeight.fw", tinyType.getSimpleName()));
+            return r;
+        }
         if (StringTinyType.class.isAssignableFrom(tinyType)) {
             final Map<String, String> r = new HashMap<>();
             r.put("tinytype", tinyType.getName());
@@ -143,7 +159,14 @@ public class TinyTypesReflector {
     private static final ResourcePatternResolver RESOLVER = new PathMatchingResourcePatternResolver();
     private static final MetadataReaderFactory MREADER = new CachingMetadataReaderFactory(RESOLVER);
     private static final Map<String, List<Class<?>>> LOCATION_PATTERN_TO_TYPES_CACHE = new HashMap<>();
-    public static final Set<String> TINY_TYPE_NAMES = Stream.of(StringTinyType.class.getName(), LongTinyType.class.getName(), IntTinyType.class.getName()).collect(Collectors.toSet());
+    public static final Set<String> TINY_TYPE_NAMES = Stream.of(
+            StringTinyType.class.getName(),
+            LongTinyType.class.getName(),
+            IntTinyType.class.getName(),
+            ShortTinyType.class.getName(),
+            ByteTinyType.class.getName(),
+            BooleanTinyType.class.getName()
+    ).collect(Collectors.toSet());
 
     public static synchronized List<Class<?>> scan(String locationPattern) {
         if (LOCATION_PATTERN_TO_TYPES_CACHE.containsKey(locationPattern)) {
