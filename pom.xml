@@ -5,7 +5,7 @@
     <artifactId>emaze-tinytypes</artifactId>
     <name>emaze-tinytypes</name>
     <packaging>jar</packaging>
-    <version>1.0</version>
+    <version>1.1-SNAPSHOT</version>
     <parent>
         <groupId>net.emaze</groupId>
         <artifactId>emaze-parent</artifactId>
@@ -67,8 +67,4 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
-
-  <scm>
-    <tag>1.0</tag>
-  </scm>
 </project>
