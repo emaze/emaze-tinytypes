@@ -1,70 +1,32 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-
     <groupId>net.emaze</groupId>
-    <artifactId>emaze-tinytypes</artifactId>
-    <name>emaze-tinytypes</name>
-    <packaging>jar</packaging>
-    <version>1.1-SNAPSHOT</version>
+    <artifactId>emaze-tinytypes-parent</artifactId>
+    <packaging>pom</packaging>
+    <version>2.0-SNAPSHOT</version>
     <parent>
         <groupId>net.emaze</groupId>
         <artifactId>emaze-parent</artifactId>
         <version>2.0</version>
     </parent>
-
-    <dependencies>
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-core</artifactId>
-            <version>4.0.6.RELEASE</version>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-context</artifactId>
-            <version>4.0.6.RELEASE</version>
-        </dependency>
-        <dependency>
-            <groupId>org.hibernate</groupId>
-            <artifactId>hibernate-core</artifactId>
-            <version>4.3.5.Final</version>
-        </dependency>
-        <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-databind</artifactId>
-            <version>2.3.3</version>
-        </dependency>
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <scope>test</scope>
-        </dependency>
-        
-        
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-tx</artifactId>
-            <version>4.0.6.RELEASE</version>
-            <scope>test</scope>
-            <optional>true</optional>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-test</artifactId>
-            <version>4.0.6.RELEASE</version>
-            <scope>test</scope>
-        </dependency>        
-        
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-orm</artifactId>
-            <version>4.0.6.RELEASE</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.hsqldb</groupId>
-            <artifactId>hsqldb</artifactId>
-            <version>2.3.2</version>
-            <scope>test</scope>
-        </dependency>
-    </dependencies>
+    
+    <modules>
+        <module>tinytypes</module>
+        <module>tinytypes-generation</module>
+        <module>tinytypes-hibernate</module>
+        <module>tinytypes-jackson</module>
+        <module>tinytypes-spring</module>
+    </modules>
+    
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>net.emaze</groupId>
+                <artifactId>emaze-mixin-spring40</artifactId>
+                <version>2.3</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 </project>
