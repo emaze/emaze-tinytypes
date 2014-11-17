@@ -11,6 +11,9 @@ public abstract class StringTinyType implements Serializable, Comparable<StringT
     public final String value;
 
     protected StringTinyType(String value) {
+        if (value == null) {
+            throw new IllegalArgumentException("value must be not null");
+        }
         this.value = value;
     }
 
