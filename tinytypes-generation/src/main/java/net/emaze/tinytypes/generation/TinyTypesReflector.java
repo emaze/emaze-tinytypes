@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -40,9 +41,8 @@ public class TinyTypesReflector {
     }
 
     public static Map<String, String> bindings(Class<?> tinyType) {
-
         if (LongTinyType.class.isAssignableFrom(tinyType)) {
-            final Map<String, String> r = new HashMap<>();
+            final Map<String, String> r = readFromAnnotation(tinyType);
             r.put("tinytype", tinyType.getName());
             r.put("factory", factory(tinyType, long.class));
             r.put("boxcast", "(Long)");
@@ -51,11 +51,11 @@ public class TinyTypesReflector {
             r.put("parse", "Long.parseLong");
             r.put("stringify", "Long.toString");
             r.put("unboxmethodcall", ".longValue()");
-            r.put("sqltype", Integer.toString(Types.BIGINT));
+            r.putIfAbsent("sqltype", Integer.toString(Types.BIGINT));
             return r;
         }
         if (IntTinyType.class.isAssignableFrom(tinyType)) {
-            final Map<String, String> r = new HashMap<>();
+            final Map<String, String> r = readFromAnnotation(tinyType);
             r.put("tinytype", tinyType.getName());
             r.put("factory", factory(tinyType, int.class));
             r.put("boxcast", "(Integer)");
@@ -64,11 +64,11 @@ public class TinyTypesReflector {
             r.put("parse", "Integer.parseInt");
             r.put("stringify", "Integer.toString");
             r.put("unboxmethodcall", ".intValue()");
-            r.put("sqltype", Integer.toString(Types.INTEGER));
+            r.putIfAbsent("sqltype", Integer.toString(Types.INTEGER));
             return r;
         }
         if (ShortTinyType.class.isAssignableFrom(tinyType)) {
-            final Map<String, String> r = new HashMap<>();
+            final Map<String, String> r = readFromAnnotation(tinyType);
             r.put("tinytype", tinyType.getName());
             r.put("factory", factory(tinyType, short.class));
             r.put("boxcast", "(Short)");
@@ -77,11 +77,11 @@ public class TinyTypesReflector {
             r.put("parse", "Short.parseShort");
             r.put("stringify", "Short.toString");
             r.put("unboxmethodcall", ".shortValue()");
-            r.put("sqltype", Integer.toString(Types.SMALLINT));
+            r.putIfAbsent("sqltype", Integer.toString(Types.SMALLINT));
             return r;
         }
         if (ByteTinyType.class.isAssignableFrom(tinyType)) {
-            final Map<String, String> r = new HashMap<>();
+            final Map<String, String> r = readFromAnnotation(tinyType);
             r.put("tinytype", tinyType.getName());
             r.put("factory", factory(tinyType, byte.class));
             r.put("boxcast", "(Byte)");
@@ -90,11 +90,11 @@ public class TinyTypesReflector {
             r.put("parse", "Byte.parseByte");
             r.put("stringify", "Byte.toString");
             r.put("unboxmethodcall", ".byteValue()");
-            r.put("sqltype", Integer.toString(Types.TINYINT));
+            r.putIfAbsent("sqltype", Integer.toString(Types.TINYINT));
             return r;
         }
         if (BooleanTinyType.class.isAssignableFrom(tinyType)) {
-            final Map<String, String> r = new HashMap<>();
+            final Map<String, String> r = readFromAnnotation(tinyType);
             r.put("tinytype", tinyType.getName());
             r.put("factory", factory(tinyType, boolean.class));
             r.put("boxcast", "(Boolean)");
@@ -103,11 +103,11 @@ public class TinyTypesReflector {
             r.put("parse", "Boolean.parseBoolean");
             r.put("stringify", "Boolean.toString");
             r.put("unboxmethodcall", ".booleanValue()");
-            r.put("sqltype", Integer.toString(Types.BIT));
+            r.putIfAbsent("sqltype", Integer.toString(Types.BIT));
             return r;
         }
         if (StringTinyType.class.isAssignableFrom(tinyType)) {
-            final Map<String, String> r = new HashMap<>();
+            final Map<String, String> r = readFromAnnotation(tinyType);
             r.put("tinytype", tinyType.getName());
             r.put("factory", factory(tinyType, String.class));
             r.put("boxcast", "(String)");
@@ -116,10 +116,17 @@ public class TinyTypesReflector {
             r.put("parse", "");
             r.put("stringify", "");
             r.put("unboxmethodcall", "");
-            r.put("sqltype", Integer.toString(Types.LONGVARCHAR));
+            r.putIfAbsent("sqltype", Integer.toString(Types.LONGVARCHAR));
             return r;
         }
         throw new IllegalStateException(String.format("unknown tiny type: %s", tinyType));
+    }
+
+    private static Map<String, String> readFromAnnotation(Class<?> tinyType) {
+        final Optional<TinyType> annotation = Optional.ofNullable(tinyType.getAnnotation(TinyType.class));
+        final Map<String, String> bindings = new HashMap<>();
+        annotation.ifPresent(ann -> bindings.put("sqltype", Integer.toString(ann.sqlType())));
+        return bindings;
     }
 
     private static final ResourcePatternResolver RESOLVER = new PathMatchingResourcePatternResolver();
