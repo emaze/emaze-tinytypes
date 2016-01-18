@@ -4,6 +4,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import net.emaze.tinytypes.integration.JacksonTinyTypesModule;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
+import java.util.Collections;
+import java.util.Map;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -33,6 +35,15 @@ public class JacksonTest {
         m.registerModule(new JacksonTinyTypesModule("classpath*:/net/emaze/**/*.class"));
         SampleIntTinyType got = m.readValue("123", SampleIntTinyType.class);
         Assert.assertEquals(123, got.value);
+    }
+
+    @Test
+    public void canSerializeMapWithTinyTypeAsKey() throws JsonProcessingException {
+        final ObjectMapper m = new ObjectMapper();
+        m.registerModule(new JacksonTinyTypesModule("classpath*:/net/emaze/**/*.class"));
+        final Map<SampleIntTinyType, String> singletonMap = Collections.singletonMap(new SampleIntTinyType(123), "value");
+        final String got = m.writeValueAsString(singletonMap);
+        Assert.assertEquals("{\"123\":\"value\"}", got);
     }
 
 }
