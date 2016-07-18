@@ -4,12 +4,19 @@
     <artifactId>emaze-tinytypes-parent</artifactId>
     <packaging>pom</packaging>
     <version>2.4-SNAPSHOT</version>
-    <parent>
-        <groupId>net.emaze</groupId>
-        <artifactId>emaze-parent</artifactId>
-        <version>2.1</version>
-    </parent>
-    
+    <name>emaze-tinytypes-parent</name>
+    <description>A support library for tinytypes and serialization/deserialization</description>
+    <url>https://github.com/emaze/emaze-tinytypes</url>
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+    <licenses>
+        <license>
+            <name>CC BY-SA 4.0</name>
+            <url>https://creativecommons.org/licenses/by-sa/4.0/</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
     <modules>
         <module>tinytypes</module>
         <module>tinytypes-generation</module>
@@ -21,15 +28,87 @@
     <dependencyManagement>
         <dependencies>
             <dependency>
-                <groupId>net.emaze</groupId>
-                <artifactId>emaze-mixin-spring40</artifactId>
-                <version>2.3</version>
+                <groupId>io.spring.platform</groupId>
+                <artifactId>platform-bom</artifactId>
+                <version>2.0.6.RELEASE</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
         </dependencies>
     </dependencyManagement>
+    <dependencies>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>com.springsource.org.apache.commons.logging</artifactId>
+            <version>1.1.1</version>
+        </dependency>    
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.5.1</version>
+                <configuration>
+                    <source>1.8</source>
+                    <target>1.8</target>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <version>3.0.1</version>
+                <executions>
+                    <execution>
+                        <id>attach-sources</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>2.10.4</version>
+                <executions>
+                    <execution>
+                        <id>attach-javadocs</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                        <configuration>
+                            <additionalparam>-Xdoclint:none</additionalparam>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-gpg-plugin</artifactId>
+                <version>1.6</version>
+                <executions>
+                    <execution>
+                        <id>sign-artifacts</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>sign</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+    <developers>
+        <developer>
+            <id>emaze-dev</id>
+            <name>Emaze Developers</name>
+            <email>dev@emaze.net</email>
+        </developer>
+    </developers>  
     <scm>
+        <url>https://github.com/emaze/emaze-tinytypes</url>
         <developerConnection>scm:git:file://${basedir}</developerConnection>
         <tag>HEAD</tag>
     </scm>
